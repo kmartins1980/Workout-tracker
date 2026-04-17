@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Workout Tracker Mobile</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-2: #111827;
+      --panel: #162033;
+      --panel-2: #1d2940;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #314158;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --shadow: 0 12px 28px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #07101e 0%, #0b1020 100%);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: max(14px, env(safe-area-inset-top)) 14px calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .hero, .panel, .exercise {
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.15;
+    }
+
+    .sub {
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: .95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: rgba(22, 32, 51, .8);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 84px;
+    }
+
+    .stat-label {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .sticky-days {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -14px 12px;
+      padding: 10px 14px 12px;
+      background: linear-gradient(180deg, rgba(7,16,30,.98) 0%, rgba(7,16,30,.94) 78%, rgba(7,16,30,0) 100%);
+      backdrop-filter: blur(10px);
+    }
+
+    .day-tabs {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .day-tabs::-webkit-scrollbar { display: none; }
+
+    .day-btn, .action-btn, .mini-btn, .bottom-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: var(--panel-2);
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .day-btn {
+      white-space: nowrap;
+      padding: 12px 16px;
+      min-height: 46px;
+      font-weight: 700;
+    }
+
+    .day-btn.active {
+      background: #0c4a6e;
+      border-color: var(--accent);
+    }
+
+    .day-btn.done::after {
+      content: " ✓";
+      color: #86efac;
+    }
+
+    .panel {
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+
+    .day-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: .8rem;
+    }
+
+    .exercise-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .exercise {
+      padding: 14px;
+    }
+
+    .exercise-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+
+    .exercise-name {
+      font-weight: 800;
+      line-height: 1.25;
+      font-size: 1rem;
+    }
+
+    .exercise-target {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .best {
+      flex-shrink: 0;
+      font-size: .78rem;
+      color: #bfdbfe;
+      border: 1px solid #0f5c89;
+      background: rgba(8, 47, 73, .55);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    .set-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .set-card {
+      border: 1px solid var(--line);
+      background: rgba(29,41,64,.58);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .set-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .set-label {
+      font-weight: 800;
+      font-size: .92rem;
+    }
+
+    .done-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      accent-color: var(--accent-2);
+      margin: 0;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    input[type="number"], input[type="text"], textarea {
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 13px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #0d1525;
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 116px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .action-btn {
+      padding: 12px 14px;
+      min-height: 48px;
+      font-weight: 700;
+    }
+
+    .action-btn.primary {
+      background: #0c4a6e;
+      border-color: var(--accent);
+    }
+
+    .action-btn.success {
+      background: #0f3a1f;
+      border-color: #22c55e;
+    }
+
+    .action-btn.danger {
+      background: #451014;
+      border-color: var(--danger);
+    }
+
+    .notes-title {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(49,65,88,.65);
+      font-size: .92rem;
+    }
+
+    .summary-line:last-child { border-bottom: 0; }
+    .muted { color: var(--muted); }
+
+    .bottom-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(7,16,30,0) 0%, rgba(7,16,30,.95) 24%, rgba(7,16,30,.98) 100%);
+      backdrop-filter: blur(10px);
+    }
+
+    .bottom-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 10px;
+    }
+
+    .bottom-btn {
+      min-height: 54px;
+      padding: 14px 16px;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+    }
+
+    .bottom-btn.primary {
+      background: #0c4a6e;
+      border-color: var(--accent);
+    }
+
+    .bottom-btn.success {
+      background: #0f3a1f;
+      border-color: #22c55e;
+    }
+
+    @media (min-width: 761px) {
+      .app { padding-left: 18px; padding-right: 18px; }
+      .sticky-days { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
+      .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .exercise-list { gap: 14px; }
+      .input-grid { grid-template-columns: 130px 130px 1fr; }
+      .field.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <h1>Workout Tracker</h1>
+      <div class="sub">Mobile-first logging for your 6-day split. Tap into a day, enter weight and reps, mark sets complete, and your progress saves automatically on this device.</div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Completed Days</div>
+          <div class="stat-value" id="completedDays">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Completed Sets</div>
+          <div class="stat-value" id="completedSets">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Volume</div>
+          <div class="stat-value" id="totalVolume">0 lb</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Top Logged Weight</div>
+          <div class="stat-value" id="topPR">—</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sticky-days">
+      <div class="day-tabs" id="dayTabs"></div>
+    </div>
+
+    <section class="panel">
+      <div class="day-header">
+        <div>
+          <h2 class="day-title" id="dayTitle">Monday</h2>
+          <div class="badge" id="dayBadge">5 exercises</div>
+        </div>
+        <div class="badge" id="dayProgress">0/0 sets</div>
+      </div>
+      <div class="exercise-list" id="exerciseList"></div>
+    </section>
+
+    <section class="panel">
+      <h3 class="notes-title">Day Notes</h3>
+      <textarea id="dayNotes" placeholder="Energy, soreness, sleep, rest times, or anything you want to remember..."></textarea>
+      <div class="actions">
+        <button class="action-btn" id="exportBtn">Export Data</button>
+        <label class="action-btn" for="importFile" style="display:flex;align-items:center;justify-content:center;">Import Data</label>
+        <input id="importFile" type="file" accept="application/json" hidden />
+        <button class="action-btn danger" id="resetBtn">Reset All</button>
+        <button class="action-btn success" id="markIncompleteBtn">Mark Day Incomplete</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3 class="notes-title">Weekly Snapshot</h3>
+      <div id="weeklySummary"></div>
+    </section>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="bottom-inner">
+      <button class="bottom-btn primary" id="completeDayBtn">Complete Selected Day</button>
+      <button class="bottom-btn success" id="nextDayBtn">Next Day</button>
+    </div>
+  </div>
+
+  <script>
+    const workoutPlan = {
+      Monday: [
+        { name: 'Barbell Bench Press', sets: 3, target: '6-8 reps' },
+        { name: 'Barbell Incline Bench Press', sets: 3, target: '6-8 reps' },
+        { name: 'Barbell Shoulder Press', sets: 3, target: '10-12 reps' },
+        { name: 'EZ Curl Bar Bicep Curls', sets: 3, target: '12-14 reps' },
+        { name: 'Dumbbell Skull Crushers', sets: 3, target: '18-20 reps' },
+      ],
+      Tuesday: [
+        { name: 'Neutral Grip Pull Ups / Pulldowns', sets: 3, target: 'to failure' },
+        { name: 'Seated Cable Rows', sets: 3, target: '8-10 reps' },
+        { name: 'Straight Arm Pulldowns', sets: 3, target: '12-14 reps' },
+        { name: 'Bodyweight Calf Raises', sets: 3, target: '35 reps' },
+        { name: 'Dumbbell Lateral Raises', sets: 3, target: '18-20 reps' },
+      ],
+      Wednesday: [
+        { name: 'Barbell Back Squats', sets: 3, target: '8-10 reps' },
+        { name: 'Dumbbell Romanian Deadlifts', sets: 3, target: '12-15 reps' },
+        { name: 'Walking Lunges', sets: 3, target: '10-12 steps per foot' },
+        { name: 'Cable Rope Tricep Extensions', sets: 3, target: '18-20 reps' },
+        { name: 'Cable Rope Bicep Curls', sets: 3, target: '18-20 reps' },
+      ],
+      Thursday: [
+        { name: 'Dumbbell Bench Press', sets: 3, target: '12-14 reps' },
+        { name: 'Dumbbell Shoulder Press', sets: 3, target: '12-14 reps' },
+        { name: 'Dumbbell Incline Bench Press', sets: 3, target: '12-14 reps' },
+        { name: 'Bodyweight Calf Raises', sets: 3, target: '35 reps' },
+        { name: 'Dumbbell Front Raises', sets: 3, target: '18-20 reps' },
+      ],
+      Friday: [
+        { name: 'Neutral Grip Pulldowns', sets: 3, target: '10-12 reps' },
+        { name: 'Horizontal Row Machine', sets: 3, target: '10-12 reps' },
+        { name: 'Chest Supported Row', sets: 3, target: '10-12 reps' },
+        { name: 'One Arm Cable Tricep Pushdowns', sets: 3, target: '18-20 reps' },
+        { name: 'One Arm Cable Bicep Curls', sets: 3, target: '18-20 reps' },
+      ],
+      Saturday: [
+        { name: 'Barbell Deadlifts', sets: 3, target: '5-8 reps' },
+        { name: 'Goblet Squats', sets: 3, target: '12-15 reps' },
+        { name: 'Bench Step Ups', sets: 3, target: '10-12 reps per leg' },
+        { name: 'Hanging Leg Raises', sets: 3, target: 'to failure' },
+        { name: 'Barbell Shrugs', sets: 3, target: '20-25 reps' },
+      ]
+    };
+
+    const days = Object.keys(workoutPlan);
+    const storageKey = 'workout_tracker_mobile_v1';
+    let selectedDay = 'Monday';
+
+    function makeDefaultData() {
+      const data = { notes: {}, completedDays: {}, logs: {}, prs: {} };
+      for (const day of days) {
+        data.notes[day] = '';
+        data.completedDays[day] = false;
+        data.logs[day] = workoutPlan[day].map(ex => ({
+          name: ex.name,
+          sets: Array.from({ length: ex.sets }, () => ({ weight: '', reps: '', note: '', done: false }))
+        }));
+      }
+      return data;
+    }
+
+    function mergeWithDefaults(saved) {
+      const base = makeDefaultData();
+      for (const day of days) {
+        if (saved.notes && typeof saved.notes[day] === 'string') base.notes[day] = saved.notes[day];
+        if (saved.completedDays && typeof saved.completedDays[day] === 'boolean') base.completedDays[day] = saved.completedDays[day];
+        if (saved.logs && Array.isArray(saved.logs[day])) {
+          saved.logs[day].forEach((exercise, exIndex) => {
+            if (!base.logs[day][exIndex]) return;
+            if (!Array.isArray(exercise.sets)) return;
+            exercise.sets.forEach((set, setIndex) => {
+              if (!base.logs[day][exIndex].sets[setIndex]) return;
+              base.logs[day][exIndex].sets[setIndex] = {
+                weight: set.weight ?? '',
+                reps: set.reps ?? '',
+                note: set.note ?? set.rir ?? '',
+                done: !!set.done
+              };
+            });
+          });
+        }
+      }
+      base.prs = saved.prs || {};
+      return base;
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) return mergeWithDefaults(JSON.parse(raw));
+      } catch {}
+
+      try {
+        const oldRaw = localStorage.getItem('workout_tracker_v1');
+        if (oldRaw) return mergeWithDefaults(JSON.parse(oldRaw));
+      } catch {}
+
+      return makeDefaultData();
+    }
+
+    let appData = loadData();
+
+    function saveData() {
+      localStorage.setItem(storageKey, JSON.stringify(appData));
+      renderStats();
+      renderWeeklySummary();
+      createTabs();
+    }
+
+    function getDaySetCounts(day) {
+      const total = appData.logs[day].reduce((sum, ex) => sum + ex.sets.length, 0);
+      const done = appData.logs[day].reduce((sum, ex) => sum + ex.sets.filter(s => s.done).length, 0);
+      return { total, done };
+    }
+
+    function createTabs() {
+      const wrap = document.getElementById('dayTabs');
+      wrap.innerHTML = '';
+      days.forEach(day => {
+        const { total, done } = getDaySetCounts(day);
+        const btn = document.createElement('button');
+        btn.className = 'day-btn' + (day === selectedDay ? ' active' : '') + (appData.completedDays[day] ? ' done' : '');
+        btn.innerHTML = `${day}<br><span style="font-size:.75rem;color:var(--muted);font-weight:600;">${done}/${total}</span>`;
+        btn.onclick = () => {
+          selectedDay = day;
+          renderDay();
+          createTabs();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        wrap.appendChild(btn);
+      });
+    }
+
+    function updatePR(exerciseName, weight) {
+      const n = Number(weight);
+      if (!n || Number.isNaN(n)) return;
+      const current = appData.prs[exerciseName] || 0;
+      if (n > current) appData.prs[exerciseName] = n;
+    }
+
+    function renderDay() {
+      document.getElementById('dayTitle').textContent = selectedDay;
+      document.getElementById('dayBadge').textContent = `${workoutPlan[selectedDay].length} exercises`;
+      document.getElementById('dayNotes').value = appData.notes[selectedDay] || '';
+
+      const counts = getDaySetCounts(selectedDay);
+      document.getElementById('dayProgress').textContent = `${counts.done}/${counts.total} sets`;
+
+      const list = document.getElementById('exerciseList');
+      list.innerHTML = '';
+
+      workoutPlan[selectedDay].forEach((exercise, exIndex) => {
+        const exLog = appData.logs[selectedDay][exIndex];
+        const exCard = document.createElement('div');
+        exCard.className = 'exercise';
+
+        const best = appData.prs[exercise.name] ? `${appData.prs[exercise.name]} lb` : '—';
+        exCard.innerHTML = `
+          <div class="exercise-top">
+            <div>
+              <div class="exercise-name">${exercise.name}</div>
+              <div class="exercise-target">${exercise.sets} sets • ${exercise.target}</div>
+            </div>
+            <div class="best">Best ${best}</div>
+          </div>
+        `;
+
+        const setStack = document.createElement('div');
+        setStack.className = 'set-stack';
+
+        exLog.sets.forEach((set, setIndex) => {
+          const setCard = document.createElement('div');
+          setCard.className = 'set-card';
+
+          const top = document.createElement('div');
+          top.className = 'set-row-top';
+          top.innerHTML = `
+            <div class="set-label">Set ${setIndex + 1}</div>
+            <label class="done-wrap">Done <input type="checkbox" ${set.done ? 'checked' : ''}></label>
+          `;
+          const doneInput = top.querySelector('input');
+          doneInput.onchange = (e) => {
+            appData.logs[selectedDay][exIndex].sets[setIndex].done = e.target.checked;
+            saveData();
+            renderDay();
+          };
+
+          const grid = document.createElement('div');
+          grid.className = 'input-grid';
+          grid.innerHTML = `
+            <div class="field">
+              <label>Weight</label>
+              <input type="number" inputmode="decimal" placeholder="lb" value="${set.weight}">
+            </div>
+            <div class="field">
+              <label>Reps</label>
+              <input type="number" inputmode="numeric" placeholder="reps" value="${set.reps}">
+            </div>
+            <div class="field full">
+              <label>Note / RIR</label>
+              <input type="text" placeholder="Optional" value="${(set.note || '').replace(/"/g, '&quot;')}">
+            </div>
+          `;
+
+          const [weightInput, repsInput, noteInput] = grid.querySelectorAll('input');
+          weightInput.oninput = (e) => {
+            appData.logs[selectedDay][exIndex].sets[setIndex].weight = e.target.value;
+            updatePR(exercise.name, e.target.value);
+            saveData();
+            renderStats();
+          };
+          repsInput.oninput = (e) => {
+            appData.logs[selectedDay][exIndex].sets[setIndex].reps = e.target.value;
+            saveData();
+          };
+          noteInput.oninput = (e) => {
+            appData.logs[selectedDay][exIndex].sets[setIndex].note = e.target.value;
+            saveData();
+          };
+
+          setCard.appendChild(top);
+          setCard.appendChild(grid);
+          setStack.appendChild(setCard);
+        });
+
+        exCard.appendChild(setStack);
+        list.appendChild(exCard);
+      });
+    }
+
+    function renderStats() {
+      let completedDays = 0;
+      let completedSets = 0;
+      let totalVolume = 0;
+      let topName = '';
+      let topWeight = 0;
+
+      days.forEach(day => {
+        if (appData.completedDays[day]) completedDays += 1;
+        appData.logs[day].forEach(ex => {
+          ex.sets.forEach(set => {
+            if (set.done) completedSets += 1;
+            const weight = Number(set.weight);
+            const reps = Number(set.reps);
+            if (!Number.isNaN(weight) && !Number.isNaN(reps) && weight > 0 && reps > 0) totalVolume += weight * reps;
+          });
+        });
+      });
+
+      Object.entries(appData.prs).forEach(([name, weight]) => {
+        if (weight > topWeight) {
+          topWeight = weight;
+          topName = name;
+        }
+      });
+
+      document.getElementById('completedDays').textContent = completedDays;
+      document.getElementById('completedSets').textContent = completedSets;
+      document.getElementById('totalVolume').textContent = `${Math.round(totalVolume).toLocaleString()} lb`;
+      document.getElementById('topPR').textContent = topWeight ? `${topWeight} lb` : '—';
+      document.getElementById('topPR').title = topName || '';
+    }
+
+    function renderWeeklySummary() {
+      const wrap = document.getElementById('weeklySummary');
+      wrap.innerHTML = '';
+      days.forEach(day => {
+        const { total, done } = getDaySetCounts(day);
+        const pct = total ? Math.round(done / total * 100) : 0;
+        const line = document.createElement('div');
+        line.className = 'summary-line';
+        line.innerHTML = `<div><strong>${day}</strong><div class="muted" style="font-size:.8rem;">${pct}% complete</div></div><div>${done}/${total} sets</div>`;
+        wrap.appendChild(line);
+      });
+    }
+
+    document.getElementById('dayNotes').addEventListener('input', (e) => {
+      appData.notes[selectedDay] = e.target.value;
+      saveData();
+    });
+
+    document.getElementById('completeDayBtn').addEventListener('click', () => {
+      appData.completedDays[selectedDay] = true;
+      saveData();
+      createTabs();
+      renderDay();
+    });
+
+    document.getElementById('markIncompleteBtn').addEventListener('click', () => {
+      appData.completedDays[selectedDay] = false;
+      saveData();
+      renderDay();
+    });
+
+    document.getElementById('nextDayBtn').addEventListener('click', () => {
+      const idx = days.indexOf(selectedDay);
+      selectedDay = days[(idx + 1) % days.length];
+      renderDay();
+      createTabs();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Reset all logged workout data? This cannot be undone.')) return;
+      appData = makeDefaultData();
+      saveData();
+      renderDay();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'workout_tracker_mobile_data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        appData = mergeWithDefaults(JSON.parse(text));
+        saveData();
+        renderDay();
+        alert('Workout data imported successfully.');
+      } catch {
+        alert('That file could not be imported. Please use a valid tracker JSON file.');
+      }
+      e.target.value = '';
+    });
+
+    saveData();
+    createTabs();
+    renderDay();
+  </script>
+</body>
+</html>
