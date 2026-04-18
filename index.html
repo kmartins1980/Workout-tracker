@@ -153,6 +153,11 @@
       .action-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .timer-dock { left: 18px; right: 18px; }
     }
+  
+    .exercise-title-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .exercise-rename-input{flex:1 1 220px;min-width:170px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);font:inherit;background:var(--panel)}
+    .exercise-reset-btn{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);font:inherit;font-weight:700}
+
   </style>
 </head>
 <body>
@@ -366,6 +371,35 @@
       return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
+
+    function getExerciseDisplayName(day, exIndex) {
+      const custom = appData.customNames?.[day]?.[exIndex];
+      return custom && String(custom).trim() ? String(custom).trim() : workoutPlan[day][exIndex].name;
+    }
+
+    function setExerciseDisplayName(day, exIndex, value) {
+      const trimmed = String(value || '').trim();
+      const original = workoutPlan[day][exIndex].name;
+      appData.customNames ??= {};
+      appData.customNames[day] ??= {};
+      if (!trimmed || trimmed === original) {
+        delete appData.customNames[day][exIndex];
+        if (Object.keys(appData.customNames[day]).length === 0) delete appData.customNames[day];
+      } else {
+        appData.customNames[day][exIndex] = trimmed;
+      }
+      appData.logs[day][exIndex].name = getExerciseDisplayName(day, exIndex);
+      persist();
+    }
+
+    function resetAllExerciseNamesForDay(day) {
+      if (appData.customNames?.[day]) delete appData.customNames[day];
+      workoutPlan[day].forEach((ex, exIndex) => {
+        if (appData.logs?.[day]?.[exIndex]) appData.logs[day][exIndex].name = ex.name;
+      });
+      persist();
+    }
+
     function parseRepRange(target) {
       const match = target.match(/(\d+)\s*-\s*(\d+)/);
       if (match) return { low: Number(match[1]), high: Number(match[2]) };
@@ -387,6 +421,7 @@
         logs: {},
         records: {},
         history: [],
+        customNames: {},
         sync: { token: '', gistId: '', lastSyncAt: '', lastSyncType: '', lastLocalChangeAt: '', lastCloudUpdatedAt: '', autoEnabled: true }
       };
       for (const day of days) {
@@ -423,6 +458,7 @@
       }
       if (Array.isArray(saved.history)) base.history = saved.history;
       if (saved.records && typeof saved.records === 'object') base.records = saved.records;
+      if (saved.customNames && typeof saved.customNames === 'object') base.customNames = saved.customNames;
       if (saved.sync && typeof saved.sync === 'object') base.sync = { ...base.sync, ...saved.sync };
       if (typeof base.sync.autoEnabled !== 'boolean') base.sync.autoEnabled = true;
       return base;
@@ -565,28 +601,35 @@
     function renderWorkoutView() {
       createDayTabs();
       document.getElementById('dayTitle').textContent = selectedDay;
-      document.getElementById('dayMeta').textContent = `${workoutPlan[selectedDay].length} exercises`;
+      document.getElementById('dayMeta').innerHTML = `${workoutPlan[selectedDay].length} exercises <button type="button" class="exercise-reset-btn" id="resetDayNamesBtn" style="margin-left:10px;">Reset names</button>`;
       const counts = getDayCounts(selectedDay);
       document.getElementById('dayProgress').textContent = `${counts.done}/${counts.total} sets`;
       document.getElementById('dayNotes').value = appData.notes[selectedDay] || '';
       const dateInput = document.getElementById('workoutDate');
       if (!dateInput.value) dateInput.value = toDateInputValue(new Date());
 
+      const resetDayNamesBtn = document.getElementById('resetDayNamesBtn');
+      if (resetDayNamesBtn) resetDayNamesBtn.onclick = () => resetAllExerciseNamesForDay(selectedDay);
+
       const list = document.getElementById('exerciseList');
       list.innerHTML = '';
       workoutPlan[selectedDay].forEach((exercise, exIndex) => {
         const exLog = appData.logs[selectedDay][exIndex];
-        const progression = getExerciseProgression(exercise.name, exercise.target);
-        const record = appData.records[exercise.name] || { weightPR: 0, e1rmPR: 0 };
+        const displayName = getExerciseDisplayName(selectedDay, exIndex);
+        const progression = getExerciseProgression(displayName, exercise.target);
+        const record = appData.records[displayName] || { weightPR: 0, e1rmPR: 0 };
 
         const card = document.createElement('div');
         card.className = 'exercise';
         const head = document.createElement('div');
         head.className = 'exercise-top';
         head.innerHTML = `
-          <div>
-            <div class="exercise-name">${escapeHtml(exercise.name)}</div>
-            <div class="exercise-meta">${exercise.sets} sets • ${escapeHtml(exercise.target)}</div>
+          <div style="flex:1 1 auto;">
+            <div class="exercise-title-row">
+              <input class="exercise-rename-input" type="text" value="${escapeHtml(displayName)}" data-day="${selectedDay}" data-exindex="${exIndex}" aria-label="Exercise name">
+              <button class="exercise-reset-btn" type="button" data-reset-name="1" data-day="${selectedDay}" data-exindex="${exIndex}">Reset</button>
+            </div>
+            <div class="exercise-meta" style="margin-top:8px;">${exercise.sets} sets • ${escapeHtml(exercise.target)}</div>
           </div>
           <div class="tag-wrap">
             <div class="tag">Wt PR ${record.weightPR ? record.weightPR + ' lb' : '—'}</div>
@@ -595,6 +638,13 @@
           </div>
         `;
         card.appendChild(head);
+
+        const renameInput = head.querySelector('.exercise-rename-input');
+        const resetNameBtn = head.querySelector('[data-reset-name="1"]');
+        renameInput.onchange = e => setExerciseDisplayName(selectedDay, exIndex, e.target.value);
+        renameInput.onblur = e => setExerciseDisplayName(selectedDay, exIndex, e.target.value);
+        resetNameBtn.onclick = () => setExerciseDisplayName(selectedDay, exIndex, '');
+
         if (progression) {
           const expl = document.createElement('div');
           expl.className = 'mini';
@@ -606,8 +656,8 @@
         const stack = document.createElement('div');
         stack.className = 'set-stack';
         exLog.sets.forEach((set, setIndex) => {
-          const setAnalysis = analyzeSetAgainstRecords(exercise.name, set.weight, set.reps);
-          const restSeconds = inferRestSeconds(exercise.name, exercise.target);
+          const setAnalysis = analyzeSetAgainstRecords(displayName, set.weight, set.reps);
+          const restSeconds = inferRestSeconds(displayName, exercise.target);
           const setCard = document.createElement('div');
           setCard.className = 'set-card';
           setCard.innerHTML = `
@@ -647,19 +697,19 @@
           };
           weightInput.oninput = e => {
             appData.logs[selectedDay][exIndex].sets[setIndex].weight = e.target.value;
-            updateRecordsFromSet(exercise.name, e.target.value, repsInput.value);
+            updateRecordsFromSet(displayName, e.target.value, repsInput.value);
             persist();
           };
           repsInput.oninput = e => {
             appData.logs[selectedDay][exIndex].sets[setIndex].reps = e.target.value;
-            updateRecordsFromSet(exercise.name, weightInput.value, e.target.value);
+            updateRecordsFromSet(displayName, weightInput.value, e.target.value);
             persist();
           };
           noteInput.oninput = e => {
             appData.logs[selectedDay][exIndex].sets[setIndex].note = e.target.value;
             persist();
           };
-          prWrap.querySelector('button').onclick = () => startTimer(restSeconds, `${exercise.name} • Set ${setIndex + 1}`);
+          prWrap.querySelector('button').onclick = () => startTimer(restSeconds, `${displayName} • Set ${setIndex + 1}`);
           stack.appendChild(setCard);
         });
         card.appendChild(stack);
