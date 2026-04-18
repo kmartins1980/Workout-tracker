@@ -434,7 +434,7 @@
           </div>
           <div class="set-cta-row">
             <button class="action-btn" id="dashOpenWorkoutBtn">Open workout</button>
-            <button class="ghost-btn" id="dashStartFlowBtn">Start guided</button>
+            <button class="ghost-btn" id="dashStartFlowBtn">Open guided workout</button>
             <button class="ghost-btn" id="dashApplyLoadsBtn">Load suggestions</button>
           </div>
           <div class="prev-line" id="dashNextHint"></div>
@@ -486,7 +486,7 @@
         <input type="date" id="workoutDate" />
       </div>
       <div class="action-grid" style="margin-bottom:12px;">
-        <button class="action-btn primary" id="startFlowBtn">Start guided</button>
+        <button class="action-btn primary" id="startFlowBtn">Open guided workout</button>
         <button class="action-btn" id="addExerciseBtn">Add Exercise</button>
       </div>
       <div class="exercise-list" id="exerciseList"></div>
@@ -499,7 +499,7 @@
           <h2 style="margin:0;">Guided workout</h2>
           <div class="mini">One set at a time, with warm-ups, previous-session context, and quick rest timers.</div>
         </div>
-        <button class="action-btn" id="flowBackToWorkoutBtn">Back to Workout</button>
+        <button class="action-btn" id="flowBackToWorkoutBtn">Back to Log</button>
       </div>
       <div id="flowScreen"></div>
     </section>
@@ -808,11 +808,21 @@
       return firstLogged || suggested || 0;
     }
 
-    function startGuidedWorkout() {
-      flowState.exerciseIndex = 0;
-      flowState.setIndex = 0;
+    function openFlowView(resetPosition = false) {
+      ensureDayStructures(selectedDay);
+      if (resetPosition) {
+        flowState.exerciseIndex = 0;
+        flowState.setIndex = 0;
+      }
       activeView = 'Flow';
       renderAll();
+      const target = document.getElementById('viewFlow');
+      if (target) target.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startGuidedWorkout() {
+      openFlowView(true);
     }
 
     function getFlowPosition() {
@@ -1164,8 +1174,12 @@ function loadData() {
       views.forEach(view => {
         const btn = document.createElement('button');
         btn.className = 'nav-btn tab-btn' + (activeView === view ? ' active' : '');
-        btn.innerHTML = `<span class="tab-emoji">${icons[view] || '•'}</span><span>${({Dashboard:'Home',Workout:'Log',Flow:'Workout',History:'History',Records:'PRs',Sync:'Backup'}[view] || view)}</span>`;
+        btn.innerHTML = `<span class="tab-emoji">${icons[view] || '•'}</span><span>${({Dashboard:'Home',Workout:'Log',Flow:'Guided',History:'History',Records:'PRs',Sync:'Backup'}[view] || view)}</span>`;
         btn.onclick = () => {
+          if (view === 'Flow') {
+            openFlowView(false);
+            return;
+          }
           activeView = view;
           renderAll();
         };
@@ -1510,7 +1524,7 @@ function renderHistoryView() {
       document.getElementById('syncToken').value = appData.sync.token || '';
       document.getElementById('syncGistId').value = appData.sync.gistId || '';
       const baseStatus = appData.sync.lastSyncAt
-        ? `Auto sync ${appData.sync.autoEnabled ? 'on' : 'off'} • Last ${appData.sync.lastSyncType || 'sync'}: ${new Date(appData.sync.lastSyncAt).toLocaleString()}${appData.sync.gistId ? ' • Gist ' + appData.sync.gistId : ''}`
+        ? `Automatic sync ${appData.sync.autoEnabled ? 'on' : 'off'} • Last ${appData.sync.lastSyncType || 'sync'}: ${new Date(appData.sync.lastSyncAt).toLocaleString()}${appData.sync.gistId ? ' • Gist ' + appData.sync.gistId : ''}`
         : (appData.sync.token ? 'Auto sync is ready. The first sync will create your private gist automatically.' : 'No cloud sync configured.');
       const extra = syncStatusMessage ? `<div style="margin-top:6px;">${escapeHtml(syncStatusMessage)}</div>` : '';
       document.getElementById('syncStatus').innerHTML = `${escapeHtml(baseStatus)}${extra}${appData.sync.gistId ? `<div class="mono" style="margin-top:6px;">${escapeHtml(appData.sync.gistId)}</div>` : ''}`;
