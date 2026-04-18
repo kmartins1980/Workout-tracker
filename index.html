@@ -217,7 +217,7 @@
 
     <section class="card section view hidden" id="viewSync">
       <h2>Cloud Sync</h2>
-      <p class="sub">This app can sync to a private GitHub Gist using your own token. Your token stays on your device. Treat that token like a password.</p>
+      <p class="sub">This app can sync automatically to a private GitHub Gist using your own token. Once you save your token, the app will auto-pull on open and auto-push changes after you log them. Your token stays on your device. Treat that token like a password.</p>
       <div class="input-grid" style="margin-top:12px;">
         <div class="field full">
           <label>GitHub fine-grained token with Gists access</label>
@@ -230,8 +230,8 @@
       </div>
       <div class="action-grid">
         <button class="action-btn primary" id="saveSyncSettingsBtn">Save Sync Settings</button>
-        <button class="action-btn good" id="pushSyncBtn">Push to Cloud</button>
-        <button class="action-btn warn" id="pullSyncBtn">Pull from Cloud</button>
+        <button class="action-btn good" id="pushSyncBtn">Sync Now (Push)</button>
+        <button class="action-btn warn" id="pullSyncBtn">Sync Now (Pull)</button>
         <button class="action-btn danger" id="clearSyncBtn">Clear Sync Settings</button>
       </div>
       <div class="status-line" id="syncStatus">No cloud sync configured.</div>
@@ -327,6 +327,9 @@
     let timerInterval = null;
     let timerRemaining = 0;
     let currentTimerLabel = 'Rest Timer';
+    let autoSyncTimer = null;
+    let syncInFlight = false;
+    let syncStatusMessage = '';
 
     function inferIncrement(name) {
       const lower = name.toLowerCase();
@@ -384,7 +387,7 @@
         logs: {},
         records: {},
         history: [],
-        sync: { token: '', gistId: '', lastSyncAt: '', lastSyncType: '' }
+        sync: { token: '', gistId: '', lastSyncAt: '', lastSyncType: '', lastLocalChangeAt: '', lastCloudUpdatedAt: '', autoEnabled: true }
       };
       for (const day of days) {
         data.notes[day] = '';
@@ -421,6 +424,7 @@
       if (Array.isArray(saved.history)) base.history = saved.history;
       if (saved.records && typeof saved.records === 'object') base.records = saved.records;
       if (saved.sync && typeof saved.sync === 'object') base.sync = { ...base.sync, ...saved.sync };
+      if (typeof base.sync.autoEnabled !== 'boolean') base.sync.autoEnabled = true;
       return base;
     }
 
@@ -438,9 +442,12 @@
 
     let appData = loadData();
 
-    function persist() {
+    function persist(options = {}) {
+      const { skipRender = false, skipAutoSync = false, skipModifiedStamp = false } = options;
+      if (!skipModifiedStamp) appData.sync.lastLocalChangeAt = new Date().toISOString();
       localStorage.setItem(storageKey, JSON.stringify(appData));
-      renderAll();
+      if (!skipRender) renderAll();
+      if (!skipAutoSync) scheduleAutoSync();
     }
 
     function getDayCounts(day) {
@@ -745,10 +752,11 @@
     function renderSyncView() {
       document.getElementById('syncToken').value = appData.sync.token || '';
       document.getElementById('syncGistId').value = appData.sync.gistId || '';
-      const status = appData.sync.lastSyncAt
-        ? `Last ${appData.sync.lastSyncType || 'sync'}: ${new Date(appData.sync.lastSyncAt).toLocaleString()}${appData.sync.gistId ? ' • Gist ' + appData.sync.gistId : ''}`
-        : 'No cloud sync configured.';
-      document.getElementById('syncStatus').innerHTML = `${escapeHtml(status)}${appData.sync.gistId ? `<div class="mono" style="margin-top:6px;">${escapeHtml(appData.sync.gistId)}</div>` : ''}`;
+      const baseStatus = appData.sync.lastSyncAt
+        ? `Auto sync ${appData.sync.autoEnabled ? 'on' : 'off'} • Last ${appData.sync.lastSyncType || 'sync'}: ${new Date(appData.sync.lastSyncAt).toLocaleString()}${appData.sync.gistId ? ' • Gist ' + appData.sync.gistId : ''}`
+        : (appData.sync.token ? 'Auto sync is ready. The first sync will create your private gist automatically.' : 'No cloud sync configured.');
+      const extra = syncStatusMessage ? `<div style="margin-top:6px;">${escapeHtml(syncStatusMessage)}</div>` : '';
+      document.getElementById('syncStatus').innerHTML = `${escapeHtml(baseStatus)}${extra}${appData.sync.gistId ? `<div class="mono" style="margin-top:6px;">${escapeHtml(appData.sync.gistId)}</div>` : ''}`;
     }
 
     function renderStats() {
@@ -881,14 +889,71 @@
       return response.json();
     }
 
-    async function pushToCloud() {
+    function hasSyncConfig() {
+      return !!appData.sync.token;
+    }
+
+    function scheduleAutoSync() {
+      if (!appData.sync.autoEnabled || !hasSyncConfig()) return;
+      if (autoSyncTimer) clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(async () => {
+        if (syncInFlight) return;
+        try {
+          syncStatusMessage = 'Auto syncing changes…';
+          renderSyncView();
+          await pushToCloud(true);
+          syncStatusMessage = 'Changes synced automatically.';
+          renderSyncView();
+        } catch (err) {
+          syncStatusMessage = err.message || 'Automatic sync failed.';
+          renderSyncView();
+        }
+      }, 1500);
+    }
+
+    function preserveSyncSettings(nextData) {
+      nextData.sync = {
+        ...nextData.sync,
+        token: appData.sync.token || nextData.sync?.token || '',
+        gistId: appData.sync.gistId || nextData.sync?.gistId || '',
+        autoEnabled: appData.sync.autoEnabled ?? true,
+        lastSyncAt: appData.sync.lastSyncAt || nextData.sync?.lastSyncAt || '',
+        lastSyncType: appData.sync.lastSyncType || nextData.sync?.lastSyncType || '',
+        lastLocalChangeAt: appData.sync.lastLocalChangeAt || nextData.sync?.lastLocalChangeAt || '',
+        lastCloudUpdatedAt: appData.sync.lastCloudUpdatedAt || nextData.sync?.lastCloudUpdatedAt || ''
+      };
+      return nextData;
+    }
+
+    async function initializeAutoSync() {
+      if (!appData.sync.autoEnabled || !hasSyncConfig() || syncInFlight) return;
+      try {
+        syncStatusMessage = appData.sync.gistId ? 'Checking cloud copy…' : 'Creating cloud backup…';
+        renderSyncView();
+        if (appData.sync.gistId) {
+          await pullFromCloud(false, true);
+          syncStatusMessage = 'Cloud copy checked automatically.';
+        } else {
+          await pushToCloud(true);
+          syncStatusMessage = 'Cloud backup created automatically.';
+        }
+      } catch (err) {
+        syncStatusMessage = err.message || 'Automatic sync setup failed.';
+      }
+      renderSyncView();
+    }
+
+    async function pushToCloud(isAuto = false) {
       if (!appData.sync.token) throw new Error('Add your GitHub token first.');
+      if (syncInFlight) return;
+      syncInFlight = true;
       const payload = {
         description: 'Workout Tracker Pro Sync',
         public: false,
         files: { 'workout-tracker-data.json': { content: JSON.stringify(appData, null, 2) } }
       };
       let result;
+      try {
       if (appData.sync.gistId) {
         result = await githubRequest(`https://api.github.com/gists/${appData.sync.gistId}`, {
           method: 'PATCH',
@@ -904,19 +969,38 @@
         appData.sync.gistId = result.id;
       }
       appData.sync.lastSyncAt = new Date().toISOString();
-      appData.sync.lastSyncType = 'push';
-      persist();
+      appData.sync.lastSyncType = isAuto ? 'auto-push' : 'push';
+      appData.sync.lastCloudUpdatedAt = result.updated_at || appData.sync.lastCloudUpdatedAt || '';
+      persist({ skipAutoSync: true, skipModifiedStamp: true });
+      } finally {
+        syncInFlight = false;
+      }
     }
 
-    async function pullFromCloud() {
+    async function pullFromCloud(force = false, isAuto = false) {
       if (!appData.sync.token || !appData.sync.gistId) throw new Error('Add your token and gist id first.');
-      const result = await githubRequest(`https://api.github.com/gists/${appData.sync.gistId}`);
-      const content = result.files?.['workout-tracker-data.json']?.content;
-      if (!content) throw new Error('No workout-tracker-data.json file found in that gist.');
-      appData = mergeWithDefaults(JSON.parse(content));
-      appData.sync.lastSyncAt = new Date().toISOString();
-      appData.sync.lastSyncType = 'pull';
-      persist();
+      if (syncInFlight) return false;
+      syncInFlight = true;
+      try {
+        const result = await githubRequest(`https://api.github.com/gists/${appData.sync.gistId}`);
+        const content = result.files?.['workout-tracker-data.json']?.content;
+        if (!content) throw new Error('No workout-tracker-data.json file found in that gist.');
+        const remoteUpdatedAt = result.updated_at || '';
+        const localChangedAfterSync = appData.sync.lastLocalChangeAt && appData.sync.lastSyncAt && new Date(appData.sync.lastLocalChangeAt) > new Date(appData.sync.lastSyncAt);
+        const remoteChangedAfterSync = remoteUpdatedAt && appData.sync.lastSyncAt && new Date(remoteUpdatedAt) > new Date(appData.sync.lastSyncAt);
+        if (!force && localChangedAfterSync && remoteChangedAfterSync) {
+          throw new Error('Both the device and cloud changed since the last sync. Tap Pull from Cloud or Push to Cloud once to choose which copy wins.');
+        }
+        const merged = preserveSyncSettings(mergeWithDefaults(JSON.parse(content)));
+        appData = merged;
+        appData.sync.lastSyncAt = new Date().toISOString();
+        appData.sync.lastSyncType = isAuto ? 'auto-pull' : 'pull';
+        appData.sync.lastCloudUpdatedAt = remoteUpdatedAt;
+        persist({ skipAutoSync: true, skipModifiedStamp: true });
+        return true;
+      } finally {
+        syncInFlight = false;
+      }
     }
 
     document.getElementById('dayNotes').addEventListener('input', e => { appData.notes[selectedDay] = e.target.value; persist(); });
@@ -941,24 +1025,28 @@
     document.getElementById('timerAddBtn').addEventListener('click', () => { timerRemaining += 15; renderTimer(); });
     document.getElementById('timerStopBtn').addEventListener('click', stopTimer);
 
-    document.getElementById('saveSyncSettingsBtn').addEventListener('click', () => {
+    document.getElementById('saveSyncSettingsBtn').addEventListener('click', async () => {
       appData.sync.token = document.getElementById('syncToken').value.trim();
       appData.sync.gistId = document.getElementById('syncGistId').value.trim();
-      persist();
-      alert('Sync settings saved on this device.');
+      appData.sync.autoEnabled = true;
+      persist({ skipAutoSync: true, skipModifiedStamp: true });
+      await initializeAutoSync();
+      alert('Sync settings saved. Automatic sync is now on for this device.');
     });
     document.getElementById('clearSyncBtn').addEventListener('click', () => {
-      appData.sync = { token: '', gistId: '', lastSyncAt: '', lastSyncType: '' };
-      persist();
+      appData.sync = { token: '', gistId: '', lastSyncAt: '', lastSyncType: '', lastLocalChangeAt: '', lastCloudUpdatedAt: '', autoEnabled: true };
+      syncStatusMessage = '';
+      persist({ skipAutoSync: true, skipModifiedStamp: true });
     });
     document.getElementById('pushSyncBtn').addEventListener('click', async () => {
-      try { await pushToCloud(); alert('Pushed to cloud sync.'); } catch (err) { alert(err.message || 'Cloud push failed.'); }
+      try { await pushToCloud(false); alert('Cloud copy updated.'); } catch (err) { alert(err.message || 'Cloud push failed.'); }
     });
     document.getElementById('pullSyncBtn').addEventListener('click', async () => {
-      try { await pullFromCloud(); alert('Pulled from cloud sync.'); } catch (err) { alert(err.message || 'Cloud pull failed.'); }
+      try { await pullFromCloud(true, false); alert('Cloud copy loaded.'); } catch (err) { alert(err.message || 'Cloud pull failed.'); }
     });
 
     renderAll();
+    initializeAutoSync();
   </script>
 </body>
 </html>
