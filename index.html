@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Workout Tracker Pro</title>
+  <title>Strength Tracker</title>
   <style>
     :root {
       --bg: #08111d;
@@ -158,13 +158,57 @@
     .exercise-rename-input{flex:1 1 220px;min-width:170px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);font:inherit;background:var(--panel)}
     .exercise-reset-btn{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);font:inherit;font-weight:700}
 
+  
+    .dashboard-grid{display:grid;grid-template-columns:1fr;gap:14px}
+    .dashboard-card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));border:1px solid var(--line);border-radius:20px;padding:16px}
+    .today-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .today-title{font-size:1.35rem;font-weight:900;letter-spacing:-.03em}
+    .small-muted{font-size:.82rem;color:var(--muted)}
+    .lift-micro-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .tm-card{padding:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)}
+    .tm-card input{width:100%;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font:inherit}
+    .quick-list{display:flex;flex-direction:column;gap:10px}
+    .quick-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
+    .session-pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;background:rgba(56,189,248,.14);color:var(--text);font-size:.82rem;font-weight:800}
+    .plate-box{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.28)}
+    .plate-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .plate-chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:.8rem;font-weight:700}
+    .exercise-shell{display:flex;flex-direction:column;gap:10px}
+    .prev-line{font-size:.8rem;color:var(--muted);margin-top:6px}
+    .set-cta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .ghost-btn{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-weight:700}
+    .today-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+    .today-summary-grid .tm-card{padding:10px}
+    .day-jump{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
+    .day-jump button{white-space:nowrap}
+
+  
+    .tab-btn{min-height:58px; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:82px; padding:10px 12px; font-size:.8rem}
+    .tab-emoji{font-size:1rem; line-height:1}
+    .exercise-manage-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px}
+    .mini-input{min-height:40px; background:var(--panel2); color:var(--text); border:1px solid var(--line); border-radius:12px; padding:8px 10px; width:84px}
+    .target-input{width:150px}
+    .mini-chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:999px;padding:8px 12px;font-weight:700}
+    .danger-chip{border-color:#7f1d1d;color:#fecaca}
+    .flow-shell{display:flex;flex-direction:column;gap:12px}
+    .flow-topline{display:flex;gap:8px;flex-wrap:wrap}
+    .flow-name{font-size:1.4rem;font-weight:900;line-height:1.15}
+    .flow-sub{color:var(--muted);margin-top:-4px}
+    .flow-warmups,.flow-card{background:rgba(17,31,52,.75);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .flow-actions{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px;margin-top:12px}
+    .flow-check{margin-top:12px}
+    .sticky-nav{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:31;margin:0;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg, rgba(8,17,29,0) 0%, rgba(8,17,29,.96) 32%, rgba(8,17,29,.99) 100%);backdrop-filter:blur(12px)}
+    .sticky-nav .scroll-row{max-width:860px;margin:0 auto;gap:8px;padding:0 4px;justify-content:space-between}
+    .bottom-bar{bottom:82px;z-index:30}
+    .app{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
+    @media (min-width: 761px){ .sticky-nav .scroll-row{justify-content:flex-start} .tab-btn{min-width:92px} }
   </style>
 </head>
 <body>
   <div class="app">
     <section class="card hero">
-      <h1>Workout Tracker Pro</h1>
-      <p class="sub">Mobile-first tracking with progression suggestions, calendar history, PR detection, rest timers, and optional cloud sync through your own GitHub Gist.</p>
+      <h1>Strength Tracker</h1>
+      <p class="sub">A more app-like lifting tracker with a home dashboard, quick workout flow, progression suggestions, plate math, PR detection, history, timers, and optional GitHub cloud sync.</p>
       <div class="stats">
         <div class="stat"><div class="label">Completed Days</div><div class="value" id="statCompletedDays">0</div></div>
         <div class="stat"><div class="label">Completed Sets</div><div class="value" id="statCompletedSets">0</div></div>
@@ -177,6 +221,62 @@
     <div class="sticky-nav">
       <div class="scroll-row" id="viewTabs"></div>
     </div>
+
+    <section class="card section view hidden" id="viewDashboard">
+      <div class="dashboard-grid">
+        <div class="dashboard-card">
+          <div class="today-hero">
+            <div>
+              <div class="small-muted">Today</div>
+              <div class="today-title" id="dashTodayTitle">Monday</div>
+              <div class="small-muted" id="dashTodayMeta">0 exercises</div>
+            </div>
+            <div class="session-pill" id="dashSyncPill">Local only</div>
+          </div>
+          <div class="today-summary-grid">
+            <div class="tm-card"><div class="small-muted">Exercises</div><div class="value" id="dashExerciseCount">0</div></div>
+            <div class="tm-card"><div class="small-muted">Sets done</div><div class="value" id="dashSetCount">0</div></div>
+            <div class="tm-card"><div class="small-muted">Volume</div><div class="value" id="dashVolume">0</div></div>
+          </div>
+          <div class="set-cta-row">
+            <button class="action-btn" id="dashOpenWorkoutBtn">Open today's workout</button>
+            <button class="ghost-btn" id="dashStartFlowBtn">Start guided</button>
+            <button class="ghost-btn" id="dashApplyLoadsBtn">Load suggestions</button>
+          </div>
+          <div class="prev-line" id="dashNextHint"></div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="between" style="margin-bottom:10px;align-items:center;">
+            <div>
+              <h2 style="margin:0;">Training Maxes</h2>
+              <div class="small-muted">Optional. Useful for quick reference and plate math, similar to a strength app flow.</div>
+            </div>
+          </div>
+          <div class="lift-micro-grid" id="tmGrid"></div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="between" style="margin-bottom:10px;align-items:center;">
+            <div>
+              <h2 style="margin:0;">Recent sessions</h2>
+              <div class="small-muted">Most recent completed training days.</div>
+            </div>
+          </div>
+          <div class="quick-list" id="recentSessionsList"></div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="between" style="margin-bottom:10px;align-items:center;">
+            <div>
+              <h2 style="margin:0;">Jump to day</h2>
+              <div class="small-muted">Fast navigation like a lifting app home screen.</div>
+            </div>
+          </div>
+          <div class="day-jump" id="dashDayJump"></div>
+        </div>
+      </div>
+    </section>
 
     <section class="card section view" id="viewWorkout">
       <div class="toolbar" id="dayTabs"></div>
@@ -191,7 +291,23 @@
         <label>Workout Date</label>
         <input type="date" id="workoutDate" />
       </div>
+      <div class="action-grid" style="margin-bottom:12px;">
+        <button class="action-btn primary" id="startFlowBtn">Start Guided Workout</button>
+        <button class="action-btn" id="addExerciseBtn">Add Exercise</button>
+      </div>
       <div class="exercise-list" id="exerciseList"></div>
+    </section>
+
+
+    <section class="card section view hidden" id="viewFlow">
+      <div class="between" style="align-items:center; margin-bottom:12px;">
+        <div>
+          <h2 style="margin:0;">Guided Set Flow</h2>
+          <div class="mini">One set at a time, with warm-ups, previous-session context, and quick rest timers.</div>
+        </div>
+        <button class="action-btn" id="flowBackToWorkoutBtn">Back to Workout</button>
+      </div>
+      <div id="flowScreen"></div>
     </section>
 
     <section class="card section view hidden" id="viewHistory">
@@ -323,10 +439,10 @@
     };
 
     const days = Object.keys(workoutPlan);
-    const views = ['Workout', 'History', 'Records', 'Sync'];
-    const storageKey = 'workout_tracker_pro_v1';
+    const views = ['Dashboard', 'Workout', 'Flow', 'History', 'Records', 'Sync'];
+    const storageKey = 'workout_tracker_pro_v2_531style';
     let selectedDay = days[0];
-    let activeView = 'Workout';
+    let activeView = 'Dashboard';
     let calendarCursor = new Date();
     let selectedHistoryDate = toDateInputValue(new Date());
     let timerInterval = null;
@@ -335,6 +451,7 @@
     let autoSyncTimer = null;
     let syncInFlight = false;
     let syncStatusMessage = '';
+    let flowState = { exerciseIndex: 0, setIndex: 0 };
 
     function inferIncrement(name) {
       const lower = name.toLowerCase();
@@ -374,12 +491,12 @@
 
     function getExerciseDisplayName(day, exIndex) {
       const custom = appData.customNames?.[day]?.[exIndex];
-      return custom && String(custom).trim() ? String(custom).trim() : workoutPlan[day][exIndex].name;
+      return custom && String(custom).trim() ? String(custom).trim() : getDayPlan(day)[exIndex].name;
     }
 
     function setExerciseDisplayName(day, exIndex, value) {
       const trimmed = String(value || '').trim();
-      const original = workoutPlan[day][exIndex].name;
+      const original = getDayPlan(day)[exIndex].name;
       appData.customNames ??= {};
       appData.customNames[day] ??= {};
       if (!trimmed || trimmed === original) {
@@ -388,16 +505,154 @@
       } else {
         appData.customNames[day][exIndex] = trimmed;
       }
+      appData.plan[day][exIndex].name = getExerciseDisplayName(day, exIndex);
       appData.logs[day][exIndex].name = getExerciseDisplayName(day, exIndex);
       persist();
     }
 
     function resetAllExerciseNamesForDay(day) {
       if (appData.customNames?.[day]) delete appData.customNames[day];
-      workoutPlan[day].forEach((ex, exIndex) => {
+      clonePlanTemplate()[day].forEach((ex, exIndex) => {
+        if (appData.plan?.[day]?.[exIndex]) appData.plan[day][exIndex].name = ex.name;
         if (appData.logs?.[day]?.[exIndex]) appData.logs[day][exIndex].name = ex.name;
       });
       persist();
+    }
+
+
+    function getDayPlan(day) {
+      return appData.plan?.[day] || workoutPlan[day];
+    }
+
+    function ensureDayStructures(day) {
+      appData.plan ??= clonePlanTemplate();
+      appData.logs ??= {};
+      appData.plan[day] ??= clonePlanTemplate()[day];
+      appData.logs[day] ??= [];
+      syncLogsToPlan(day);
+    }
+
+    function syncLogsToPlan(day) {
+      ensurePlanOnly(day);
+      const plan = appData.plan[day];
+      const existing = Array.isArray(appData.logs[day]) ? appData.logs[day] : [];
+      appData.logs[day] = plan.map((ex, idx) => {
+        const prev = existing[idx];
+        const prevSets = Array.isArray(prev?.sets) ? prev.sets : [];
+        return {
+          name: ex.name,
+          sets: Array.from({ length: ex.sets }, (_, setIdx) => ({
+            weight: prevSets[setIdx]?.weight ?? '',
+            reps: prevSets[setIdx]?.reps ?? '',
+            note: prevSets[setIdx]?.note ?? '',
+            done: !!prevSets[setIdx]?.done
+          }))
+        };
+      });
+    }
+
+    function ensurePlanOnly(day) {
+      appData.plan ??= clonePlanTemplate();
+      if (!Array.isArray(appData.plan[day])) appData.plan[day] = clonePlanTemplate()[day];
+    }
+
+    function updateExerciseMeta(day, exIndex, field, value) {
+      ensureDayStructures(day);
+      if (!appData.plan[day][exIndex]) return;
+      if (field === 'sets') value = Math.max(1, Number(value || 1));
+      appData.plan[day][exIndex][field] = value;
+      if (field === 'name') appData.logs[day][exIndex].name = value;
+      syncLogsToPlan(day);
+      persist();
+    }
+
+    function addExerciseToDay(day) {
+      ensureDayStructures(day);
+      appData.plan[day].push({ name: 'New Exercise', sets: 3, target: '8-10 reps' });
+      syncLogsToPlan(day);
+      persist();
+    }
+
+    function deleteExerciseFromDay(day, exIndex) {
+      ensureDayStructures(day);
+      if (!appData.plan[day][exIndex]) return;
+      appData.plan[day].splice(exIndex, 1);
+      syncLogsToPlan(day);
+      if (flowState.exerciseIndex >= getDayPlan(day).length) {
+        flowState.exerciseIndex = Math.max(0, getDayPlan(day).length - 1);
+        flowState.setIndex = 0;
+      }
+      persist();
+    }
+
+    function moveExercise(day, exIndex, direction) {
+      ensureDayStructures(day);
+      const newIndex = exIndex + direction;
+      if (newIndex < 0 || newIndex >= appData.plan[day].length) return;
+      [appData.plan[day][exIndex], appData.plan[day][newIndex]] = [appData.plan[day][newIndex], appData.plan[day][exIndex]];
+      [appData.logs[day][exIndex], appData.logs[day][newIndex]] = [appData.logs[day][newIndex], appData.logs[day][exIndex]];
+      persist();
+    }
+
+    function getWarmupSets(exerciseName, workingWeight) {
+      const w = Number(workingWeight || 0);
+      if (!(w > 0)) return [];
+      const lower = exerciseName.toLowerCase();
+      const heavy = ['deadlift','squat','bench','press','row','pulldown','pull up','shrug'].some(k => lower.includes(k));
+      if (!heavy) return [];
+      const scheme = w >= 225 ? [[0.4,8],[0.55,5],[0.7,3],[0.82,1]] : [[0.45,8],[0.6,5],[0.75,3]];
+      const inc = inferIncrement(exerciseName);
+      return scheme.map(([pct,reps]) => ({ weight: roundToIncrement(w*pct, inc), reps }));
+    }
+
+    function getExerciseWorkingWeight(day, exIndex) {
+      const plan = getDayPlan(day);
+      const ex = plan[exIndex];
+      if (!ex) return 0;
+      const firstLogged = Number(appData.logs?.[day]?.[exIndex]?.sets?.find(s => Number(s.weight) > 0)?.weight || 0);
+      const suggested = Number(getSuggestedWorkingWeight(ex.name, ex.target) || 0);
+      return firstLogged || suggested || 0;
+    }
+
+    function startGuidedWorkout() {
+      flowState.exerciseIndex = 0;
+      flowState.setIndex = 0;
+      activeView = 'Flow';
+      renderAll();
+    }
+
+    function getFlowPosition() {
+      const plan = getDayPlan(selectedDay);
+      if (!plan.length) return null;
+      let exIndex = Math.min(flowState.exerciseIndex, plan.length - 1);
+      let setIndex = Math.min(flowState.setIndex, appData.logs[selectedDay][exIndex].sets.length - 1);
+      return { exIndex, setIndex };
+    }
+
+    function advanceFlow(step = 1) {
+      const plan = getDayPlan(selectedDay);
+      if (!plan.length) return;
+      let { exIndex, setIndex } = getFlowPosition();
+      while (step > 0) {
+        if (setIndex < appData.logs[selectedDay][exIndex].sets.length - 1) setIndex += 1;
+        else if (exIndex < plan.length - 1) { exIndex += 1; setIndex = 0; }
+        else break;
+        step -= 1;
+      }
+      flowState.exerciseIndex = exIndex;
+      flowState.setIndex = setIndex;
+      renderAll();
+    }
+
+    function retreatFlow() {
+      const plan = getDayPlan(selectedDay);
+      if (!plan.length) return;
+      let { exIndex, setIndex } = getFlowPosition();
+      if (setIndex > 0) setIndex -= 1;
+      else if (exIndex > 0) { exIndex -= 1; setIndex = appData.logs[selectedDay][exIndex].sets.length - 1; }
+      flowState.exerciseIndex = exIndex;
+      flowState.setIndex = setIndex;
+      renderAll();
     }
 
     function parseRepRange(target) {
@@ -414,6 +669,11 @@
       return w * (1 + r / 30);
     }
 
+    
+    function clonePlanTemplate() {
+      return JSON.parse(JSON.stringify(workoutPlan));
+    }
+
     function makeDefaultData() {
       const data = {
         notes: {},
@@ -422,12 +682,15 @@
         records: {},
         history: [],
         customNames: {},
+        trainingMaxes: {},
+        plan: clonePlanTemplate(),
+        ui: { plateUnit: 'lb', defaultBarbell: 45, dumbbellHandle: 0 },
         sync: { token: '', gistId: '', lastSyncAt: '', lastSyncType: '', lastLocalChangeAt: '', lastCloudUpdatedAt: '', autoEnabled: true }
       };
       for (const day of days) {
         data.notes[day] = '';
         data.completedDays[day] = false;
-        data.logs[day] = workoutPlan[day].map(ex => ({
+        data.logs[day] = data.plan[day].map(ex => ({
           name: ex.name,
           sets: Array.from({ length: ex.sets }, () => ({ weight: '', reps: '', note: '', done: false }))
         }));
@@ -438,12 +701,31 @@
     function mergeWithDefaults(saved) {
       const base = makeDefaultData();
       if (!saved || typeof saved !== 'object') return base;
+
+      if (saved.plan && typeof saved.plan === 'object') {
+        for (const day of days) {
+          if (Array.isArray(saved.plan[day]) && saved.plan[day].length) {
+            base.plan[day] = saved.plan[day].map(ex => ({
+              name: String(ex?.name || 'New Exercise'),
+              sets: Math.max(1, Number(ex?.sets || 3)),
+              target: String(ex?.target || '8-10 reps')
+            }));
+            base.logs[day] = base.plan[day].map(ex => ({
+              name: ex.name,
+              sets: Array.from({ length: ex.sets }, () => ({ weight: '', reps: '', note: '', done: false }))
+            }));
+          }
+        }
+      }
+
       for (const day of days) {
         if (saved.notes?.[day] != null) base.notes[day] = String(saved.notes[day]);
         if (typeof saved.completedDays?.[day] === 'boolean') base.completedDays[day] = saved.completedDays[day];
         if (Array.isArray(saved.logs?.[day])) {
           saved.logs[day].forEach((exercise, exIndex) => {
-            if (!base.logs[day][exIndex] || !Array.isArray(exercise?.sets)) return;
+            if (!base.logs[day][exIndex]) return;
+            base.logs[day][exIndex].name = String(exercise?.name || base.plan[day][exIndex].name);
+            if (!Array.isArray(exercise?.sets)) return;
             exercise.sets.forEach((set, setIndex) => {
               if (!base.logs[day][exIndex].sets[setIndex]) return;
               base.logs[day][exIndex].sets[setIndex] = {
@@ -459,12 +741,14 @@
       if (Array.isArray(saved.history)) base.history = saved.history;
       if (saved.records && typeof saved.records === 'object') base.records = saved.records;
       if (saved.customNames && typeof saved.customNames === 'object') base.customNames = saved.customNames;
+      if (saved.trainingMaxes && typeof saved.trainingMaxes === 'object') base.trainingMaxes = saved.trainingMaxes;
+      if (saved.ui && typeof saved.ui === 'object') base.ui = { ...base.ui, ...saved.ui };
       if (saved.sync && typeof saved.sync === 'object') base.sync = { ...base.sync, ...saved.sync };
       if (typeof base.sync.autoEnabled !== 'boolean') base.sync.autoEnabled = true;
       return base;
     }
 
-    function loadData() {
+function loadData() {
       try {
         const raw = localStorage.getItem(storageKey);
         if (raw) return mergeWithDefaults(JSON.parse(raw));
@@ -560,23 +844,142 @@
       appData.records[exerciseName] = existing;
     }
 
+
+    function getSuggestedWorkingWeight(exerciseName, target) {
+      const progression = getExerciseProgression(exerciseName, target);
+      if (progression?.nextWeight) return progression.nextWeight;
+      const rec = appData.records?.[exerciseName];
+      if (rec?.weightPR) return roundToIncrement(Number(rec.weightPR) * 0.85, inferIncrement(exerciseName));
+      const tm = Number(appData.trainingMaxes?.[exerciseName] || 0);
+      if (tm) return roundToIncrement(tm * 0.75, inferIncrement(exerciseName));
+      return 0;
+    }
+
+    function getPreviousSessionForExercise(exerciseName) {
+      const sessions = [...appData.history].sort((a,b) => new Date(b.completedAt||b.date) - new Date(a.completedAt||a.date));
+      for (const session of sessions) {
+        for (const ex of (session.exercises || [])) {
+          if (ex.name === exerciseName) return { session, exercise: ex };
+        }
+      }
+      return null;
+    }
+
+    function getTodayVolume(day) {
+      return (appData.logs?.[day] || []).reduce((sum, ex) => sum + (ex.sets || []).reduce((s, set) => s + ((Number(set.weight)||0) * (Number(set.reps)||0)), 0), 0);
+    }
+
+    function calculatePlateBreakdown(totalWeight, exerciseName) {
+      const lower = exerciseName.toLowerCase();
+      const usesBarbell = lower.includes('barbell') || lower.includes('deadlift') || lower.includes('squat') || lower.includes('bench') || lower.includes('shrug') || lower.includes('ez curl');
+      const base = usesBarbell ? Number(appData.ui?.defaultBarbell || 45) : Number(appData.ui?.dumbbellHandle || 0);
+      const perSide = Math.max(0, (Number(totalWeight || 0) - base) / 2);
+      const plates = [45, 35, 25, 10, 5, 2.5];
+      let remaining = Math.round(perSide * 100) / 100;
+      const result = [];
+      for (const p of plates) {
+        const count = Math.floor((remaining + 1e-9) / p);
+        if (count > 0) {
+          result.push({ plate: p, count });
+          remaining = Math.round((remaining - count * p) * 100) / 100;
+        }
+      }
+      return { base, perSide: Math.max(0, perSide), plates: result, usesBarbell };
+    }
+
+    function renderPlateBox(exerciseName, weight) {
+      const target = Number(weight || 0);
+      if (!target) return '<div class="plate-box"><div class="small-muted">Enter a weight to see plates.</div></div>';
+      const calc = calculatePlateBreakdown(target, exerciseName);
+      if (!calc.usesBarbell) {
+        return `<div class="plate-box"><div><strong>${target} lb</strong> target</div><div class="small-muted" style="margin-top:6px;">This movement may not use a standard barbell. Adjust if needed.</div></div>`;
+      }
+      const chips = calc.plates.length ? calc.plates.map(p => `<span class="plate-chip">${p.count} × ${p.plate}</span>`).join('') : '<span class="plate-chip">Bar only</span>';
+      return `<div class="plate-box"><div><strong>${target} lb</strong> total • <span class="small-muted">${calc.base} lb bar</span></div><div class="small-muted" style="margin-top:6px;">Per side: ${calc.perSide % 1 === 0 ? calc.perSide.toFixed(0) : calc.perSide.toFixed(1)} lb</div><div class="plate-row">${chips}</div></div>`;
+    }
+
+    function setTrainingMax(exerciseName, value) {
+      appData.trainingMaxes[exerciseName] = value ? Number(value) : 0;
+      persist();
+    }
+
+    function getPrimaryLifts() {
+      return ['Barbell Bench Press','Barbell Back Squats','Barbell Deadlifts','Barbell Shoulder Press'];
+    }
+
+    function renderDashboard() {
+      const counts = getDayCounts(selectedDay);
+      document.getElementById('dashTodayTitle').textContent = selectedDay;
+      document.getElementById('dashTodayMeta').textContent = `${getDayPlan(selectedDay).length} exercises scheduled`;
+      document.getElementById('dashExerciseCount').textContent = getDayPlan(selectedDay).length;
+      document.getElementById('dashSetCount').textContent = `${counts.done}/${counts.total}`;
+      document.getElementById('dashVolume').textContent = `${Math.round(getTodayVolume(selectedDay)).toLocaleString()} lb`;
+      document.getElementById('dashSyncPill').textContent = appData.sync.lastSyncAt ? `Synced ${new Date(appData.sync.lastSyncAt).toLocaleDateString()}` : 'Local only';
+      document.getElementById('dashNextHint').textContent = `Next up: ${getExerciseDisplayName(selectedDay, 0)}${appData.completedDays[selectedDay] ? ' • day completed' : ''}`;
+
+      const tmGrid = document.getElementById('tmGrid');
+      tmGrid.innerHTML = '';
+      getPrimaryLifts().forEach(name => {
+        const wrap = document.createElement('div');
+        wrap.className = 'tm-card';
+        const tm = Number(appData.trainingMaxes?.[name] || 0);
+        const rec = appData.records?.[name];
+        wrap.innerHTML = `
+          <div style="font-weight:800;">${escapeHtml(name.replace('Barbell ', '').replace('Press','Press'))}</div>
+          <div class="small-muted">PR ${rec?.weightPR ? rec.weightPR + ' lb' : '—'} • e1RM ${rec?.e1rmPR ? rec.e1rmPR + ' lb' : '—'}</div>
+          <input type="number" inputmode="decimal" placeholder="Training max (lb)" value="${tm || ''}">
+        `;
+        wrap.querySelector('input').oninput = e => setTrainingMax(name, e.target.value);
+        tmGrid.appendChild(wrap);
+      });
+
+      const recent = [...appData.history].sort((a,b)=> new Date(b.completedAt||b.date)-new Date(a.completedAt||a.date)).slice(0,4);
+      const recentList = document.getElementById('recentSessionsList');
+      recentList.innerHTML = recent.length ? '' : '<div class="quick-item"><div class="small-muted">No completed sessions yet.</div></div>';
+      recent.forEach(session => {
+        const vol = (session.exercises || []).reduce((sum, ex) => sum + (ex.sets || []).reduce((s, set) => s + ((Number(set.weight)||0) * (Number(set.reps)||0)), 0), 0);
+        const item = document.createElement('button');
+        item.className = 'quick-item';
+        item.innerHTML = `<div><div style="font-weight:800;">${escapeHtml(session.day)}</div><div class="small-muted">${friendlyDate(session.date)}</div></div><div class="tag">${Math.round(vol).toLocaleString()} lb</div>`;
+        item.onclick = () => {
+          selectedHistoryDate = session.date;
+          calendarCursor = new Date(session.date + 'T00:00:00');
+          activeView = 'History';
+          renderAll();
+        };
+        recentList.appendChild(item);
+      });
+
+      const dayJump = document.getElementById('dashDayJump');
+      dayJump.innerHTML = '';
+      days.forEach(day => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-btn' + (day === selectedDay ? ' active' : '');
+        btn.textContent = day;
+        btn.onclick = () => { selectedDay = day; activeView = 'Workout'; renderAll(); };
+        dayJump.appendChild(btn);
+      });
+    }
+
+
+    
     function createViewTabs() {
       const wrap = document.getElementById('viewTabs');
       wrap.innerHTML = '';
+      const icons = { Dashboard:'🏠', Workout:'🏋️', Flow:'▶️', History:'📅', Records:'🏆', Sync:'☁️' };
       views.forEach(view => {
         const btn = document.createElement('button');
-        btn.className = 'nav-btn' + (activeView === view ? ' active' : '');
-        btn.textContent = view;
+        btn.className = 'nav-btn tab-btn' + (activeView === view ? ' active' : '');
+        btn.innerHTML = `<span class="tab-emoji">${icons[view] || '•'}</span><span>${view}</span>`;
         btn.onclick = () => {
           activeView = view;
-          renderViews();
-          createViewTabs();
+          renderAll();
         };
         wrap.appendChild(btn);
       });
     }
 
-    function createDayTabs() {
+function createDayTabs() {
       const wrap = document.getElementById('dayTabs');
       wrap.innerHTML = '';
       days.forEach(day => {
@@ -589,19 +992,25 @@
       });
     }
 
+    
     function renderViews() {
       document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
       document.getElementById(`view${activeView}`).classList.remove('hidden');
+      const bottomBar = document.querySelector('.bottom-bar');
+      if (bottomBar) bottomBar.style.display = activeView === 'Workout' ? '' : 'none';
+      if (activeView === 'Dashboard') renderDashboard();
       if (activeView === 'Workout') renderWorkoutView();
+      if (activeView === 'Flow') renderFlowView();
       if (activeView === 'History') renderHistoryView();
       if (activeView === 'Records') renderRecordsView();
       if (activeView === 'Sync') renderSyncView();
     }
 
     function renderWorkoutView() {
+      ensureDayStructures(selectedDay);
       createDayTabs();
       document.getElementById('dayTitle').textContent = selectedDay;
-      document.getElementById('dayMeta').innerHTML = `${workoutPlan[selectedDay].length} exercises <button type="button" class="exercise-reset-btn" id="resetDayNamesBtn" style="margin-left:10px;">Reset names</button>`;
+      document.getElementById('dayMeta').innerHTML = `${getDayPlan(selectedDay).length} exercises <button type="button" class="exercise-reset-btn" id="resetDayNamesBtn" style="margin-left:10px;">Reset names</button>`;
       const counts = getDayCounts(selectedDay);
       document.getElementById('dayProgress').textContent = `${counts.done}/${counts.total} sets`;
       document.getElementById('dayNotes').value = appData.notes[selectedDay] || '';
@@ -610,14 +1019,21 @@
 
       const resetDayNamesBtn = document.getElementById('resetDayNamesBtn');
       if (resetDayNamesBtn) resetDayNamesBtn.onclick = () => resetAllExerciseNamesForDay(selectedDay);
+      const addExerciseBtn = document.getElementById('addExerciseBtn');
+      if (addExerciseBtn) addExerciseBtn.onclick = () => addExerciseToDay(selectedDay);
+      const startFlowBtn = document.getElementById('startFlowBtn');
+      if (startFlowBtn) startFlowBtn.onclick = () => startGuidedWorkout();
 
       const list = document.getElementById('exerciseList');
       list.innerHTML = '';
-      workoutPlan[selectedDay].forEach((exercise, exIndex) => {
+      getDayPlan(selectedDay).forEach((exercise, exIndex) => {
         const exLog = appData.logs[selectedDay][exIndex];
         const displayName = getExerciseDisplayName(selectedDay, exIndex);
         const progression = getExerciseProgression(displayName, exercise.target);
         const record = appData.records[displayName] || { weightPR: 0, e1rmPR: 0 };
+        const previous = getPreviousSessionForExercise(displayName);
+        const workingWeight = getExerciseWorkingWeight(selectedDay, exIndex);
+        const warmups = getWarmupSets(displayName, workingWeight);
 
         const card = document.createElement('div');
         card.className = 'exercise';
@@ -629,32 +1045,61 @@
               <input class="exercise-rename-input" type="text" value="${escapeHtml(displayName)}" data-day="${selectedDay}" data-exindex="${exIndex}" aria-label="Exercise name">
               <button class="exercise-reset-btn" type="button" data-reset-name="1" data-day="${selectedDay}" data-exindex="${exIndex}">Reset</button>
             </div>
-            <div class="exercise-meta" style="margin-top:8px;">${exercise.sets} sets • ${escapeHtml(exercise.target)}</div>
+            <div class="exercise-manage-row">
+              <input class="mini-input" type="number" min="1" step="1" value="${exercise.sets}" data-meta="sets" data-exindex="${exIndex}" aria-label="Sets">
+              <input class="mini-input target-input" type="text" value="${escapeHtml(exercise.target)}" data-meta="target" data-exindex="${exIndex}" aria-label="Target reps">
+              <button class="mini-chip" type="button" data-move="-1" data-exindex="${exIndex}">↑</button>
+              <button class="mini-chip" type="button" data-move="1" data-exindex="${exIndex}">↓</button>
+              <button class="mini-chip danger-chip" type="button" data-delete-ex="1" data-exindex="${exIndex}">Delete</button>
+            </div>
           </div>
           <div class="tag-wrap">
             <div class="tag">Wt PR ${record.weightPR ? record.weightPR + ' lb' : '—'}</div>
             <div class="tag pr">e1RM ${record.e1rmPR ? record.e1rmPR + ' lb' : '—'}</div>
+            ${workingWeight ? `<div class="tag good">Work ${workingWeight} lb</div>` : ''}
             ${progression ? `<div class="tag good">${progression.type === 'increase' ? 'Next ' + progression.nextWeight + ' lb' : progression.type === 'hold' ? 'Hold load' : 'Mixed loads'}</div>` : ''}
           </div>
         `;
         card.appendChild(head);
 
         const renameInput = head.querySelector('.exercise-rename-input');
-        const resetNameBtn = head.querySelector('[data-reset-name="1"]');
         renameInput.onchange = e => setExerciseDisplayName(selectedDay, exIndex, e.target.value);
         renameInput.onblur = e => setExerciseDisplayName(selectedDay, exIndex, e.target.value);
+        const resetNameBtn = head.querySelector('[data-reset-name="1"]');
         resetNameBtn.onclick = () => setExerciseDisplayName(selectedDay, exIndex, '');
+        head.querySelectorAll('[data-meta]').forEach(input => {
+          input.onchange = e => updateExerciseMeta(selectedDay, exIndex, e.target.dataset.meta, e.target.value);
+          input.onblur = e => updateExerciseMeta(selectedDay, exIndex, e.target.dataset.meta, e.target.value);
+        });
+        const moveUp = head.querySelector('[data-move="-1"]');
+        const moveDown = head.querySelector('[data-move="1"]');
+        const delBtn = head.querySelector('[data-delete-ex="1"]');
+        moveUp.onclick = () => moveExercise(selectedDay, exIndex, -1);
+        moveDown.onclick = () => moveExercise(selectedDay, exIndex, 1);
+        delBtn.onclick = () => {
+          if (confirm(`Delete ${displayName}?`)) deleteExerciseFromDay(selectedDay, exIndex);
+        };
 
-        if (progression) {
+        const topInfo = [];
+        if (previous) {
+          const prevSummary = (previous.exercise.sets || []).map(s => `${s.weight || '—'}×${s.reps || '—'}`).join(', ');
+          topInfo.push(`Last: ${friendlyDate(previous.session.date)} • ${prevSummary}`);
+        }
+        if (warmups.length) {
+          topInfo.push(`Warm-ups: ${warmups.map(w => `${w.weight}×${w.reps}`).join(' • ')}`);
+        }
+        if (progression?.reason) topInfo.push(progression.reason);
+        if (topInfo.length) {
           const expl = document.createElement('div');
           expl.className = 'mini';
           expl.style.marginBottom = '10px';
-          expl.textContent = progression.reason;
+          expl.innerHTML = topInfo.map(t => `<div style="margin-bottom:4px;">${escapeHtml(t)}</div>`).join('');
           card.appendChild(expl);
         }
 
         const stack = document.createElement('div');
         stack.className = 'set-stack';
+
         exLog.sets.forEach((set, setIndex) => {
           const setAnalysis = analyzeSetAgainstRecords(displayName, set.weight, set.reps);
           const restSeconds = inferRestSeconds(displayName, exercise.target);
@@ -663,65 +1108,133 @@
           setCard.innerHTML = `
             <div class="set-top">
               <div class="set-label">Set ${setIndex + 1}</div>
-              <label class="done-wrap">Done <input type="checkbox" ${set.done ? 'checked' : ''}></label>
+              <label class="check">
+                <input type="checkbox" ${set.done ? 'checked' : ''} />
+                <span>Done</span>
+              </label>
             </div>
             <div class="input-grid">
               <div class="field">
                 <label>Weight</label>
-                <input type="number" inputmode="decimal" placeholder="lb" value="${escapeHtml(set.weight)}">
+                <input inputmode="decimal" type="number" placeholder="lb" value="${escapeHtml(set.weight)}" />
               </div>
               <div class="field">
                 <label>Reps</label>
-                <input type="number" inputmode="numeric" placeholder="reps" value="${escapeHtml(set.reps)}">
+                <input inputmode="numeric" type="number" placeholder="reps" value="${escapeHtml(set.reps)}" />
               </div>
               <div class="field full">
                 <label>Note / RIR</label>
-                <input type="text" placeholder="Optional" value="${escapeHtml(set.note)}">
+                <input type="text" placeholder="Example: RIR 2" value="${escapeHtml(set.note)}" />
               </div>
             </div>
+            ${renderPlateBox(displayName, set.weight || workingWeight)}
+            <div class="between" style="margin-top:10px; gap:8px; flex-wrap:wrap;">
+              <div class="mini">${setAnalysis.newWeightPR ? '🏆 New weight PR' : ''}${setAnalysis.newWeightPR && setAnalysis.newE1RMPR ? ' • ' : ''}${setAnalysis.newE1RMPR ? '⚡ New e1RM PR' : ''}</div>
+              <button class="action-btn" type="button">Start ${Math.round(restSeconds / 60)} min rest</button>
+            </div>
           `;
+          const [weightInput, repsInput, noteInput] = setCard.querySelectorAll('input:not([type="checkbox"])');
           const doneInput = setCard.querySelector('input[type="checkbox"]');
-          const [weightInput, repsInput, noteInput] = setCard.querySelectorAll('.input-grid input');
-
-          const prWrap = document.createElement('div');
-          prWrap.className = 'tag-wrap';
-          prWrap.style.marginTop = '10px';
-          if (setAnalysis.newWeightPR) prWrap.innerHTML += `<div class="tag pr">Potential Weight PR</div>`;
-          if (setAnalysis.newE1RMPR) prWrap.innerHTML += `<div class="tag pr">Potential e1RM PR</div>`;
-          prWrap.innerHTML += `<button class="timer-btn action-btn" type="button">Start ${Math.floor(restSeconds/60)}:${String(restSeconds%60).padStart(2,'0')} rest</button>`;
-          setCard.appendChild(prWrap);
-
-          doneInput.onchange = e => {
-            appData.logs[selectedDay][exIndex].sets[setIndex].done = e.target.checked;
-            persist();
-          };
           weightInput.oninput = e => {
-            appData.logs[selectedDay][exIndex].sets[setIndex].weight = e.target.value;
+            set.weight = e.target.value;
             updateRecordsFromSet(displayName, e.target.value, repsInput.value);
             persist();
           };
           repsInput.oninput = e => {
-            appData.logs[selectedDay][exIndex].sets[setIndex].reps = e.target.value;
+            set.reps = e.target.value;
             updateRecordsFromSet(displayName, weightInput.value, e.target.value);
             persist();
           };
-          noteInput.oninput = e => {
-            appData.logs[selectedDay][exIndex].sets[setIndex].note = e.target.value;
-            persist();
-          };
-          prWrap.querySelector('button').onclick = () => startTimer(restSeconds, `${displayName} • Set ${setIndex + 1}`);
+          noteInput.oninput = e => { set.note = e.target.value; persist(); };
+          doneInput.onchange = e => { set.done = e.target.checked; persist(); };
+          setCard.querySelector('button').onclick = () => startTimer(restSeconds, `${displayName} • Set ${setIndex + 1}`);
           stack.appendChild(setCard);
         });
+
         card.appendChild(stack);
         list.appendChild(card);
       });
     }
 
-    function getSessionsByDate(dateStr) {
-      return appData.history.filter(session => session.date === dateStr).sort((a, b) => (a.day > b.day ? 1 : -1));
+    function renderFlowView() {
+      ensureDayStructures(selectedDay);
+      const wrap = document.getElementById('flowScreen');
+      const plan = getDayPlan(selectedDay);
+      if (!plan.length) {
+        wrap.innerHTML = `<div class="mini">No exercises scheduled for ${selectedDay}.</div>`;
+        return;
+      }
+      const pos = getFlowPosition();
+      flowState.exerciseIndex = pos.exIndex;
+      flowState.setIndex = pos.setIndex;
+      const exercise = plan[pos.exIndex];
+      const displayName = getExerciseDisplayName(selectedDay, pos.exIndex);
+      const set = appData.logs[selectedDay][pos.exIndex].sets[pos.setIndex];
+      const workingWeight = getExerciseWorkingWeight(selectedDay, pos.exIndex);
+      const warmups = getWarmupSets(displayName, workingWeight);
+      const previous = getPreviousSessionForExercise(displayName);
+      const restSeconds = inferRestSeconds(displayName, exercise.target);
+      wrap.innerHTML = `
+        <div class="flow-shell">
+          <div class="flow-topline">
+            <div class="tag">${selectedDay}</div>
+            <div class="tag">${pos.exIndex + 1}/${plan.length} exercises</div>
+            <div class="tag pr">Set ${pos.setIndex + 1}/${appData.logs[selectedDay][pos.exIndex].sets.length}</div>
+          </div>
+          <div class="flow-name">${escapeHtml(displayName)}</div>
+          <div class="flow-sub">${exercise.sets} sets • ${escapeHtml(exercise.target)}</div>
+          ${previous ? `<div class="mini" style="margin-bottom:10px;">Last time: ${friendlyDate(previous.session.date)} • ${(previous.exercise.sets || []).map(s => `${s.weight || '—'}×${s.reps || '—'}`).join(', ')}</div>` : ''}
+          ${warmups.length ? `<div class="flow-warmups"><div class="small-muted" style="margin-bottom:6px;">Warm-up sets</div><div>${warmups.map(w => `<span class="mini-chip">${w.weight}×${w.reps}</span>`).join('')}</div></div>` : ''}
+          <div class="flow-card">
+            <div class="input-grid">
+              <div class="field">
+                <label>Weight</label>
+                <input id="flowWeightInput" inputmode="decimal" type="number" value="${escapeHtml(set.weight || workingWeight || '')}" placeholder="lb" />
+              </div>
+              <div class="field">
+                <label>Reps</label>
+                <input id="flowRepsInput" inputmode="numeric" type="number" value="${escapeHtml(set.reps)}" placeholder="reps" />
+              </div>
+              <div class="field full">
+                <label>Note / RIR</label>
+                <input id="flowNoteInput" type="text" value="${escapeHtml(set.note)}" placeholder="How did it feel?" />
+              </div>
+            </div>
+            ${renderPlateBox(displayName, set.weight || workingWeight)}
+            <div class="flow-check">
+              <label class="check"><input id="flowDoneInput" type="checkbox" ${set.done ? 'checked' : ''}><span>Mark this set complete</span></label>
+            </div>
+            <div class="flow-actions">
+              <button class="action-btn" id="flowPrevBtn">Previous</button>
+              <button class="action-btn warn" id="flowRestBtn">Start rest</button>
+              <button class="action-btn primary" id="flowNextBtn">Save & Next</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('flowBackToWorkoutBtn').onclick = () => { activeView = 'Workout'; renderAll(); };
+      const w = document.getElementById('flowWeightInput');
+      const r = document.getElementById('flowRepsInput');
+      const n = document.getElementById('flowNoteInput');
+      const d = document.getElementById('flowDoneInput');
+      const saveFlowSet = () => {
+        set.weight = w.value;
+        set.reps = r.value;
+        set.note = n.value;
+        set.done = d.checked;
+        updateRecordsFromSet(displayName, w.value, r.value);
+        persist({ skipRender: true });
+      };
+      w.oninput = saveFlowSet;
+      r.oninput = saveFlowSet;
+      n.oninput = saveFlowSet;
+      d.onchange = saveFlowSet;
+      document.getElementById('flowPrevBtn').onclick = () => { saveFlowSet(); retreatFlow(); };
+      document.getElementById('flowRestBtn').onclick = () => { saveFlowSet(); startTimer(restSeconds, `${displayName} • Set ${pos.setIndex + 1}`); };
+      document.getElementById('flowNextBtn').onclick = () => { d.checked = true; saveFlowSet(); advanceFlow(1); };
     }
 
-    function renderHistoryView() {
+function renderHistoryView() {
       const monthStart = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), 1);
       const monthEnd = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 0);
       document.getElementById('calendarMonthLabel').textContent = monthStart.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
@@ -777,7 +1290,7 @@
         return;
       }
       items.forEach(([name, record]) => {
-        const target = days.flatMap(day => workoutPlan[day]).find(ex => ex.name === name)?.target || '';
+        const target = days.flatMap(day => getDayPlan(day)).find(ex => ex.name === name)?.target || '';
         const progression = getExerciseProgression(name, target);
         const item = document.createElement('div');
         item.className = 'record-item';
@@ -868,15 +1381,15 @@
     }
 
     function applySuggestionsForDay() {
-      workoutPlan[selectedDay].forEach((exercise, exIndex) => {
-        const suggestion = getExerciseProgression(exercise.name, exercise.target);
+      getDayPlan(selectedDay).forEach((exercise, exIndex) => {
+        const suggestion = getExerciseProgression(getExerciseDisplayName(selectedDay, exIndex), exercise.target);
         if (suggestion?.type === 'increase' && suggestion.nextWeight) {
           appData.logs[selectedDay][exIndex].sets.forEach(set => {
-            if (!set.weight) set.weight = String(suggestion.nextWeight);
+            set.weight = String(suggestion.nextWeight);
           });
         } else if (suggestion?.type === 'hold' && suggestion.nextWeight) {
           appData.logs[selectedDay][exIndex].sets.forEach(set => {
-            if (!set.weight) set.weight = String(suggestion.nextWeight);
+            set.weight = String(suggestion.nextWeight);
           });
         }
       });
@@ -1054,7 +1567,11 @@
     }
 
     document.getElementById('dayNotes').addEventListener('input', e => { appData.notes[selectedDay] = e.target.value; persist(); });
+    document.getElementById('dashOpenWorkoutBtn').addEventListener('click', () => { activeView = 'Workout'; renderAll(); });
+    document.getElementById('dashStartFlowBtn').addEventListener('click', () => { startGuidedWorkout(); });
+    document.getElementById('dashApplyLoadsBtn').addEventListener('click', () => { activeView = 'Workout'; applySuggestionsForDay(); });
     document.getElementById('completeDayBtn').addEventListener('click', completeSelectedDay);
+    document.getElementById('flowBackToWorkoutBtn').addEventListener('click', () => { activeView = 'Workout'; renderAll(); });
     document.getElementById('nextDayBtn').addEventListener('click', () => {
       selectedDay = days[(days.indexOf(selectedDay) + 1) % days.length];
       activeView = 'Workout';
